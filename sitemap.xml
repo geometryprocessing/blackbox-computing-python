@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
      <loc>https://geometryprocessing.github.io/blackbox-computing-python/</loc>
-     <lastmod>2020-05-12</lastmod>
+     <lastmod>2020-05-21</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://geometryprocessing.github.io/blackbox-computing-python/Intro.pdf</loc>
-     <lastmod>2020-05-12</lastmod>
+     <loc>https://geometryprocessing.github.io/blackbox-computing-python/fem-intro/</loc>
+     <lastmod>2020-05-21</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://geometryprocessing.github.io/blackbox-computing-python/viz_basic/</loc>
-     <lastmod>2020-05-12</lastmod>
+     <loc>https://geometryprocessing.github.io/blackbox-computing-python/fem-intro-high-order/</loc>
+     <lastmod>2020-05-21</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://geometryprocessing.github.io/blackbox-computing-python/Polyfem-2d/</loc>
-     <lastmod>2020-05-12</lastmod>
+     <loc>https://geometryprocessing.github.io/blackbox-computing-python/geo_viz/</loc>
+     <lastmod>2020-05-21</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://geometryprocessing.github.io/blackbox-computing-python/All/</loc>
-     <lastmod>2020-05-12</lastmod>
+     <loc>https://geometryprocessing.github.io/blackbox-computing-python/polyfem2d/</loc>
+     <lastmod>2020-05-21</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://geometryprocessing.github.io/blackbox-computing-python/concluding.pdf</loc>
-     <lastmod>2020-05-12</lastmod>
+     <loc>https://geometryprocessing.github.io/blackbox-computing-python/ultimate/</loc>
+     <lastmod>2020-05-21</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
