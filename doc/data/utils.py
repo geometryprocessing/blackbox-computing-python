@@ -26,7 +26,38 @@ def read_model(obj_path, feat_path):
     return m
 
 
-
+def get_averaged_normals(model):
+    n = model["normals"]
+    #c = model["curvatures"]
+    ni = model["normal_indices"]
+    v = model["vertices"]
+    f = model["face_indices"]
+    normals = {}
+    #curvs = {}
+    for i in range(f.shape[0]):
+        for j in range(3):
+            vert = f[i][j]
+            norm = n[ni[i, j]]
+     #       curv = c[ni[i, j]]
+            if vert not in normals:
+                normals[vert] = []
+      #          curvs[vert] = []
+            
+            normals[vert].append(norm)
+       #     curvs[vert].append(curv[:2])
+    
+    av_normals = np.zeros((v.shape[0], 3))
+    #ga_curvs = np.zeros(v.shape[0])
+    #me_curvs = np.zeros(v.shape[0])
+    cnt = 0
+    for v in sorted(normals):
+        #print(len(normals[v]))
+        av_normals[cnt] = np.mean(np.array(normals[v]), axis=0)
+     #   c_min, c_max = np.mean(np.array(curvs[v]), axis=0)
+      #  ga_curvs[cnt] = c_min * c_max
+      #  me_curvs[cnt] = (c_min + c_max) / 2.0
+        cnt += 1
+    return av_normals#, ga_curvs, me_curvs
 
 class ABCDataset(InMemoryDataset):
     r""" The ABC dataset from the `"ABC: A Big CAD Model Dataset for Geometric Deep Learning"
@@ -57,13 +88,35 @@ class ABCDataset(InMemoryDataset):
 
     def __init__(self, root, typ="Curves", train=True, transform=None, pre_transform=None, pre_filter=None):
         super(ABCDataset, self).__init__(root, transform, pre_transform, pre_filter)
-        path = self.processed_paths[0] if train else self.processed_paths[1]
-        if typ == "Curves":
+        path = self.processed_paths[0] if train else self.processed_paths[4]
+        self.typ = typ
+        if self.typ == "Edges":
             p = path
-        if typ == "Normals":
+        if self.typ == "Normals":
             p = path.replace(".pt", "_normals.pt")
+        if self.typ == "Types":
+            p = path.replace(".pt", "_types.pt")
+
         self.data, self.slices = torch.load(p)
         from yaml import CLoader as Loader, CDumper as Dumper
+
+        
+        #torch.load(self.collate(train_data), self.processed_paths[0])
+        #torch.save(self.collate(test_data), self.processed_paths[3])
+        if train:
+            with open(self.processed_paths[1], "r") as f:
+                self.faces = yaml.load(f, Loader=Loader)
+            with open(self.processed_paths[2], "r") as f:
+                self.names = yaml.load(f, Loader=Loader)
+            with open(self.processed_paths[3], "r") as f:
+                self.fpatches = yaml.load(f, Loader=Loader)
+        else:
+            with open(self.processed_paths[5], "r") as f:
+                self.faces = yaml.load(f, Loader=Loader)
+            with open(self.processed_paths[6], "r") as f:
+                self.names = yaml.load(f, Loader=Loader) 
+            with open(self.processed_paths[7], "r") as f:
+                self.fpatches = yaml.load(f, Loader=Loader) 
 
     @property
     def raw_file_names(self):
@@ -76,7 +129,7 @@ class ABCDataset(InMemoryDataset):
         #cats = '_'.join([cat[:3].lower() for cat in self.categories])
         fns = []
         for n in ["train", "test"]:
-            for c in ['data']:
+            for c in ['data', "faces", "names", "f_patches"]:
                 fns.append('{}_{}.pt'.format(n, c))
         return fns
     
@@ -101,24 +154,27 @@ class ABCDataset(InMemoryDataset):
         points = []
         normals = []
         patches = []
+        edges = []
         faces = []
         names = []
         types = []
         face_patches = []
         t_map = {"Plane": 0, "Cylinder": 1, "Cone": 2, "Sphere": 3, "Torus": 4, "Bezier": 5, "BSpline": 6, "Revolution": 7,"Extrusion": 8, "Other": 9}
         cnt = 0
-        for idx, obj in enumerate(obj_paths[:250]):
-            if cnt == 100:
+        for idx, obj in enumerate(obj_paths):
+            if cnt == 10:
                 break
-            print(idx, cnt)
+            
             if os.path.getsize(obj) >= 10 * 1024**2 or os.path.getsize(feat_paths[idx+5]) >= 10 * 1024**2:
                 #print("Skipping large file", obj)
                 continue
+            print(idx, cnt)
             m = read_model(obj, feat_paths[idx])
-            normal = cm.get_averaged_normals(m)
+            normal = get_averaged_normals(m)
             #print(normal.shape)
             
             patch = np.zeros(m["vertices"].shape[0], dtype=np.long)
+            edge = np.zeros(m["vertices"].shape[0], dtype=np.long)
             typ = np.zeros(m["vertices"].shape[0], dtype=np.long)
             f_patch = np.zeros(m["face_indices"].shape[0], dtype=np.long)
             invalid = False
@@ -146,21 +202,29 @@ class ABCDataset(InMemoryDataset):
                     
                 for j in range(len(fe["vert_indices"])):
                     v_s = fe["vert_indices"][j]
-                    patch[v_s] = val
+                    typ[v_s] = val
+                    if val == -2:
+                        edge[v_s] = 1
             points.append(torch.tensor(m["vertices"].astype(np.float32)).squeeze())
             normals.append(torch.tensor(normal.astype(np.float32)).squeeze())
             patches.append(torch.tensor(patch).squeeze())
             types.append(torch.tensor(typ).squeeze())
+            edges.append(torch.tensor(edge).squeeze())
             faces.append(m["face_indices"])
             face_patches.append(f_patch)
             names.append(obj)
             cnt += 1
 
         cnt = 0
-        for (v, n, p, t) in zip(points, normals, patches, types):
+        for (v, n, p, t, e) in zip(points, normals, patches, types, edges):
             cnts = torch.tensor(np.ones(p.shape, dtype=np.long)*cnt)
             cnt += 1
-            data = Data(pos=v, idx=cnts, y_typ=t, y_patch=p, y_normal=n)
+            #if self.typ == "Curves":
+            #data = Data(pos=v, idx=cnts, y=e)
+            data = Data(pos=v, idx=cnts, y=t)
+            #data = Data(pos=v, idx=cnts, y=n)
+#           data = Data(pos=v, idx=cnts, y=n)#y_typ=t, y_patch=p, y_normal=n, y_edge=e)
+
             if self.pre_filter is not None and not self.pre_filter(data):
                 continue
             if self.pre_transform is not None:
@@ -174,7 +238,21 @@ class ABCDataset(InMemoryDataset):
         test_data, test_faces, test_names, test_fpatches = self.process_raw_path(*self.raw_paths[2:4])
 
         torch.save(self.collate(train_data), self.processed_paths[0])
-        torch.save(self.collate(test_data), self.processed_paths[1])
+        torch.save(self.collate(test_data), self.processed_paths[4])
+        with open(self.processed_paths[1], "w") as f:
+            #tta = np.hstack([np.vstack(train_faces), np.hstack(train_fpatches).reshape(-1, 1)])
+            yaml.dump(train_faces, f)
+        with open(self.processed_paths[2], "w") as f:
+            yaml.dump(train_names, f)
+        with open(self.processed_paths[3], "w") as f:
+            yaml.dump(train_fpatches, f)
+        with open(self.processed_paths[5], "w") as f:
+            #tta = np.hstack([np.vstack(test_faces), np.hstack(test_fpatches).reshape(-1, 1)])
+            yaml.dump(test_faces, f)
+        with open(self.processed_paths[6], "w") as f:
+            yaml.dump(test_names, f)   
+        with open(self.processed_paths[7], "w") as f:
+            yaml.dump(test_fpatches, f)
 
     def __repr__(self):
         return '{}({}, categories={})'.format(self.__class__.__name__,
