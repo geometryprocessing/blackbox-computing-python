@@ -1,23 +1,23 @@
-site_name: Geometric Computing with Python
-site_url: 'https://geometryprocessing.github.io/geometric-computing-python/'
-repo_name: 'geometryprocessing/geometric-computing-python'
-repo_url: 'https://github.com/geometryprocessing/geometric-computing-python'
-site_description: "Geometry Computing with Python"
+site_name: Black Box Geometric Computing with Python
+site_url: 'https://geometryprocessing.github.io/blackbox-computing-python'
+repo_name: 'geometryprocessing/blackbox-computing-python'
+repo_url: 'https://github.com/geometryprocessing/blackbox-computing-python'
+site_description: "Black Box Geometric Computing with Python"
 # strict: true
 docs_dir: 'doc'
 remote_branch: 'master'
 theme:
   name: material
   favicon: 'favicon.ico'
-  logo:
-    icon: ' '
+  icon:
+    logo: 'material/alpha-b-box'
   palette:
     primary: 'light black'
     accent: 'black'
 extra:
   social:
-    - type: 'github'
-      link: 'https://geometryprocessing.github.io/geometric-computing-python/'
+    - icon: 'fontawesome/brands/github'
+      link: 'https://geometryprocessing.github.io/blackbox-computing-python'
 markdown_extensions:
   - codehilite
   - footnotes
@@ -54,10 +54,12 @@ extra_javascript:
   - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
 nav:
   - Home: index.md
-  - Course:
-    - Introduction: Intro.pdf
-    - Visualization and Geometry Processing: viz_basic.ipynb
-    # - CAD and Machine Learning: cad_ml.ipynb
-    - Meshing and Simulation: Polyfem-2d.ipynb
-    - Ultimate Example: All.ipynb
-    - Closing Remarks: concluding.pdf
+  - Introduction: https://www.icloud.com/keynote/0S7N5YO_5dhSTfYacBIGRxLvA#01_-_Introduction
+  - FEM Introduction: fem-intro.ipynb
+  - FEM (Higher Order): fem-intro-high-order.ipynb
+  - Geometry Processing: geo_viz.ipynb
+  - Black Box Simulation: https://www.icloud.com/keynote/0iQMvxSA-M-FJGH8QcKpcf8Mw#04_-_Black_Box
+  - CAD Deep Learning: cad_ml.ipynb
+  - Meshing and Simulation: polyfem2d.ipynb
+  - Ultimate Example: ultimate.ipynb
+  - Conclusion: https://www.icloud.com/keynote/0LqBqqPGg0qnz9sJyZjMpDZUg#07_-_Conclusions

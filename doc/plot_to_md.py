@@ -32,4 +32,4 @@ def lis_to_md(self):
     return res
 
 get_ipython().display_formatter.formatters["text/html"].for_type(meshplot.Viewer, mp_to_md)
-get_ipython().display_formatter.formatters["text/html"].for_type(meshplot.Subplot, sp_to_md)
+#get_ipython().display_formatter.formatters["text/html"].for_type(meshplot.Subplot, sp_to_md)
