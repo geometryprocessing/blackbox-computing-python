@@ -14,13 +14,13 @@ The full course is available as videos [here](https://www.youtube.com/playlist?l
 The course is divided into the following parts:
 
 - [Introduction](https://www.icloud.com/keynote/0S7N5YO_5dhSTfYacBIGRxLvA#01_-_Introduction)
-- [FEM Introduction](fem-intro) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=doc%2Ffem-intro.ipynb)
-- [FEM Higher Order](fem-intro-high-order) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=doc%2Ffem-intro-high-order.ipynb)
+- [FEM Introduction](fem-intro) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=nb%2Ffem-intro.ipynb)
+- [FEM Higher Order](fem-intro-high-order) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=nb%2Ffem-intro-high-order.ipynb)
 - [Geometry Processing](geo_viz) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=nb%2Fgeo_viz.ipynb)
 - [Black Box Simulation](https://www.icloud.com/keynote/0iQMvxSA-M-FJGH8QcKpcf8Mw#04_-_Black_Box)
 - [CAD Deep Learning](cad_ml)
-- [Meshing and Simulation](polyfem2d) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=doc%2Fpolyfem2d.ipynb)
-- [Ultimate Example](ultimate) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=doc%2Fultimate.ipynb)
+- [Meshing and Simulation](polyfem2d) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=nb%2Fpolyfem2d.ipynb)
+- [Ultimate Example](ultimate) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/geometryprocessing/blackbox-computing-python.git/doc?filepath=nb%2Fultimate.ipynb)
 - [Conclusion](https://www.icloud.com/keynote/0LqBqqPGg0qnz9sJyZjMpDZUg#07_-_Conclusions)
 
 
