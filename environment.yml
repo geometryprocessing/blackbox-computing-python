@@ -5,9 +5,9 @@ channels:
 dependencies:
   - numpy
   - scipy
-  - meshplot
+  - meshplot==0.4.0
   - plotly
-  - igl
+  - igl==0.5.0
   - wildmeshing
   - polyfempy
   - pyyaml
