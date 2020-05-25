@@ -7,6 +7,7 @@ rendertype = "JUPYTER" # "OFFLINE"
 def jupyter():
     global rendertype
     rendertype = "JUPYTER"
+    rendertype = "WEBSITE"
 
 def offline():
     global rendertype
