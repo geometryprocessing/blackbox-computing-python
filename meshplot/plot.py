@@ -6,8 +6,7 @@ import uuid
 rendertype = "JUPYTER" # "OFFLINE"
 def jupyter():
     global rendertype
-#    rendertype = "JUPYTER"
-    rendertype = "WEBSITE"
+    rendertype = "JUPYTER"
 
 def offline():
     global rendertype
