@@ -3,3 +3,5 @@ doc/*.html
 /*.html
 /*.mesh*
 site
+*.dat
+bunny_out.obj

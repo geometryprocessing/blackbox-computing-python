@@ -1,9 +1,3 @@
-from __future__ import division
-
-import torch
-import torch.nn.functional as F
-from torch_scatter import scatter_add
-
 import igl
 import yaml
 from yaml import CLoader as Loader, CDumper as Dumper
@@ -16,6 +10,7 @@ import igl
 import numpy as np
 import torch
 from torch_geometric.data import (Data, InMemoryDataset)
+from torch.nn import Sequential as Seq, Linear as Lin, ReLU, BatchNorm1d as BN
     
 def read_model(obj_path, feat_path):
     m = {}
@@ -28,36 +23,28 @@ def read_model(obj_path, feat_path):
 
 def get_averaged_normals(model):
     n = model["normals"]
-    #c = model["curvatures"]
     ni = model["normal_indices"]
     v = model["vertices"]
     f = model["face_indices"]
     normals = {}
-    #curvs = {}
+
     for i in range(f.shape[0]):
         for j in range(3):
             vert = f[i][j]
             norm = n[ni[i, j]]
-     #       curv = c[ni[i, j]]
+
             if vert not in normals:
                 normals[vert] = []
-      #          curvs[vert] = []
             
             normals[vert].append(norm)
-       #     curvs[vert].append(curv[:2])
     
     av_normals = np.zeros((v.shape[0], 3))
-    #ga_curvs = np.zeros(v.shape[0])
-    #me_curvs = np.zeros(v.shape[0])
+
     cnt = 0
     for v in sorted(normals):
-        #print(len(normals[v]))
         av_normals[cnt] = np.mean(np.array(normals[v]), axis=0)
-     #   c_min, c_max = np.mean(np.array(curvs[v]), axis=0)
-      #  ga_curvs[cnt] = c_min * c_max
-      #  me_curvs[cnt] = (c_min + c_max) / 2.0
         cnt += 1
-    return av_normals#, ga_curvs, me_curvs
+    return av_normals
 
 class ABCDataset(InMemoryDataset):
     r""" The ABC dataset from the `"ABC: A Big CAD Model Dataset for Geometric Deep Learning"
@@ -259,287 +246,11 @@ class ABCDataset(InMemoryDataset):
                                               len(self), self.categories)
 
 
-
-
-
-def accuracy(pred, target):
-    r"""Computes the accuracy of predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-
-    :rtype: int
-    """
-    return (pred == target).sum().item() / target.numel()
-
-
-def true_positive(pred, target, num_classes):
-    r"""Computes the number of true positive predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`LongTensor`
-    """
-    out = []
-    for i in range(num_classes):
-        out.append(((pred == i) & (target == i)).sum())
-
-    return torch.tensor(out)
-
-
-def true_negative(pred, target, num_classes):
-    r"""Computes the number of true negative predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`LongTensor`
-    """
-    out = []
-    for i in range(num_classes):
-        out.append(((pred != i) & (target != i)).sum())
-
-    return torch.tensor(out)
-
-
-def false_positive(pred, target, num_classes):
-    r"""Computes the number of false positive predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`LongTensor`
-    """
-    out = []
-    for i in range(num_classes):
-        out.append(((pred == i) & (target != i)).sum())
-
-    return torch.tensor(out)
-
-
-def false_negative(pred, target, num_classes):
-    r"""Computes the number of false negative predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`LongTensor`
-    """
-    out = []
-    for i in range(num_classes):
-        out.append(((pred != i) & (target == i)).sum())
-
-    return torch.tensor(out)
-
-
-def precision(pred, target, num_classes):
-    r"""Computes the precision
-    :math:`\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}` of predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`Tensor`
-    """
-    tp = true_positive(pred, target, num_classes).to(torch.float)
-    fp = false_positive(pred, target, num_classes).to(torch.float)
-
-    out = tp / (tp + fp)
-    out[torch.isnan(out)] = 0
-
-    return out
-
-
-def recall(pred, target, num_classes):
-    r"""Computes the recall
-    :math:`\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}` of predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`Tensor`
-    """
-    tp = true_positive(pred, target, num_classes).to(torch.float)
-    fn = false_negative(pred, target, num_classes).to(torch.float)
-
-    out = tp / (tp + fn)
-    out[torch.isnan(out)] = 0
-
-    return out
-
-
-def f1_score(pred, target, num_classes):
-    r"""Computes the :math:`F_1` score
-    :math:`2 \cdot \frac{\mathrm{precision} \cdot \mathrm{recall}}
-    {\mathrm{precision}+\mathrm{recall}}` of predictions.
-
-    Args:
-        pred (Tensor): The predictions.
-        target (Tensor): The targets.
-        num_classes (int): The number of classes.
-
-    :rtype: :class:`Tensor`
-    """
-    prec = precision(pred, target, num_classes)
-    rec = recall(pred, target, num_classes)
-
-    score = 2 * (prec * rec) / (prec + rec)
-    score[torch.isnan(score)] = 0
-
-    return score
-
-
-def intersection_and_union(pred, target, num_classes, batch=None):
-    r"""Computes intersection and union of predictions.
-
-    Args:
-        pred (LongTensor): The predictions.
-        target (LongTensor): The targets.
-        num_classes (int): The number of classes.
-        batch (LongTensor): The assignment vector which maps each pred-target
-            pair to an example.
-
-    :rtype: (:class:`LongTensor`, :class:`LongTensor`)
-    """
-    pred, target = F.one_hot(pred, num_classes), F.one_hot(target, num_classes)
-
-    if batch is None:
-        i = (pred & target).sum(dim=0)
-        u = (pred | target).sum(dim=0)
-    else:
-        i = scatter_add(pred & target, batch, dim=0)
-        u = scatter_add(pred | target, batch, dim=0)
-
-    return i, u
-
-
-def mean_iou(pred, target, num_classes, batch=None):
-    r"""Computes the mean intersection over union score of predictions.
-
-    Args:
-        pred (LongTensor): The predictions.
-        target (LongTensor): The targets.
-        num_classes (int): The number of classes.
-        batch (LongTensor): The assignment vector which maps each pred-target
-            pair to an example.
-
-    :rtype: :class:`Tensor`
-    """
-    i, u = intersection_and_union(pred, target, num_classes, batch)
-    iou = i.to(torch.float) / u.to(torch.float)
-    iou[torch.isnan(iou)] = 1
-    iou = iou.mean(dim=-1)
-    return iou
-
-import os.path as osp
-
-import torch
-import torch.nn.functional as F
-from torch.nn import Sequential as Seq, Linear as Lin, ReLU, BatchNorm1d as BN
-from torch_geometric.datasets import ModelNet
-import torch_geometric.transforms as T
-from torch_geometric.data import DataLoader
-from torch_geometric.nn import PointConv, fps, radius, global_max_pool
-
-
-class SAModule(torch.nn.Module):
-    def __init__(self, ratio, r, nn):
-        super(SAModule, self).__init__()
-        self.ratio = ratio
-        self.r = r
-        self.conv = PointConv(nn)
-
-    def forward(self, x, pos, batch):
-        idx = fps(pos, batch, ratio=self.ratio)
-        row, col = radius(pos, pos[idx], self.r, batch, batch[idx],
-                          max_num_neighbors=64)
-        edge_index = torch.stack([col, row], dim=0)
-        x = self.conv(x, (pos, pos[idx]), edge_index)
-        pos, batch = pos[idx], batch[idx]
-        return x, pos, batch
-
-
-class GlobalSAModule(torch.nn.Module):
-    def __init__(self, nn):
-        super(GlobalSAModule, self).__init__()
-        self.nn = nn
-
-    def forward(self, x, pos, batch):
-        x = self.nn(torch.cat([x, pos], dim=1))
-        x = global_max_pool(x, batch)
-        pos = pos.new_zeros((x.size(0), 3))
-        batch = torch.arange(x.size(0), device=batch.device)
-        return x, pos, batch
-
-
 def MLP(channels, batch_norm=True):
     return Seq(*[
         Seq(Lin(channels[i - 1], channels[i]), ReLU(), BN(channels[i]))
         for i in range(1, len(channels))
     ])
 
-
-class Net(torch.nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-
-        self.sa1_module = SAModule(0.5, 0.2, MLP([3, 64, 64, 128]))
-        self.sa2_module = SAModule(0.25, 0.4, MLP([128 + 3, 128, 128, 256]))
-        self.sa3_module = GlobalSAModule(MLP([256 + 3, 256, 512, 1024]))
-
-        self.lin1 = Lin(1024, 512)
-        self.lin2 = Lin(512, 256)
-        self.lin3 = Lin(256, 10)
-
-    def forward(self, data):
-        sa0_out = (data.x, data.pos, data.batch)
-        sa1_out = self.sa1_module(*sa0_out)
-        sa2_out = self.sa2_module(*sa1_out)
-        sa3_out = self.sa3_module(*sa2_out)
-        x, pos, batch = sa3_out
-
-        x = F.relu(self.lin1(x))
-        x = F.dropout(x, p=0.5, training=self.training)
-        x = F.relu(self.lin2(x))
-        x = F.dropout(x, p=0.5, training=self.training)
-        x = self.lin3(x)
-        return F.log_softmax(x, dim=-1)
-
-
-def train(epoch):
-    model.train()
-
-    for data in train_loader:
-        data = data.to(device)
-        optimizer.zero_grad()
-        loss = F.nll_loss(model(data), data.y)
-        loss.backward()
-        optimizer.step()
-
-
-def test(loader):
-    model.eval()
-
-    correct = 0
-    for data in loader:
-        data = data.to(device)
-        with torch.no_grad():
-            pred = model(data).max(1)[1]
-        correct += pred.eq(data.y).sum().item()
-    return correct / len(loader.dataset)
 
 
